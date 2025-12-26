@@ -1,76 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
 import AdminLayout from '@/components/AdminLayout'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
+import ErrorMessage from '@/components/common/ErrorMessage'
+import ActionButtons from '@/components/common/ActionButtons'
+import { useListPage } from '@/hooks/useListPage'
 import { introductionService } from '@/lib/api/services'
 import { Introduction } from '@/lib/api/types'
-import { Plus, Edit, Trash2, Loader2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function IntroductionPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth()
-  const router = useRouter()
-  const [introductions, setIntroductions] = useState<Introduction[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const { items: introductions, loading, error, deletingId, handleDelete } = useListPage<Introduction>({
+    fetchFn: () => introductionService.getAll(),
+    deleteFn: (id) => introductionService.delete(id),
+    getId: (intro) => intro.introductionId,
+    deleteConfirmMessage: 'Bạn có chắc chắn muốn xóa phần giới thiệu này?',
+  })
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login')
-    }
-  }, [isAuthenticated, authLoading, router])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchIntroductions()
-    }
-  }, [isAuthenticated])
-
-  const fetchIntroductions = async () => {
-    try {
-      setLoading(true)
-      setError('')
-      const response = await introductionService.getAll()
-      if (response.success && response.data) {
-        setIntroductions(response.data)
-      } else {
-        setError(response.error || 'Không thể tải dữ liệu')
-      }
-    } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa phần giới thiệu này?')) {
-      return
-    }
-
-    try {
-      setDeletingId(id)
-      const response = await introductionService.delete(id)
-      if (response.success) {
-        setIntroductions(introductions.filter((intro) => intro.introductionId !== id))
-      } else {
-        alert(response.error || 'Xóa thất bại')
-      }
-    } catch (err: any) {
-      alert(err.message || 'Đã xảy ra lỗi khi xóa')
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <AdminLayout title="Giới Thiệu">
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-dark" />
+          <LoadingSpinner size="lg" />
         </div>
       </AdminLayout>
     )
@@ -89,11 +41,7 @@ export default function IntroductionPage() {
         </Link>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
+      <ErrorMessage message={error} className="mb-6" />
 
       {introductions.length === 0 ? (
         <div className="card text-center py-12">
@@ -130,26 +78,12 @@ export default function IntroductionPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {new Date(intro.updatedAt).toLocaleDateString('vi-VN')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <Link
-                      href={`/dashboard/introduction/${intro.introductionId}`}
-                      className="text-primary-dark hover:text-primary-dark/80 inline-flex items-center"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Sửa
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(intro.introductionId)}
-                      disabled={deletingId === intro.introductionId}
-                      className="text-red-600 hover:text-red-800 inline-flex items-center disabled:opacity-50"
-                    >
-                      {deletingId === intro.introductionId ? (
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-4 h-4 mr-1" />
-                      )}
-                      Xóa
-                    </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <ActionButtons
+                      editHref={`/dashboard/introduction/${intro.introductionId}`}
+                      onDelete={() => handleDelete(intro.introductionId)}
+                      deleting={deletingId === intro.introductionId}
+                    />
                   </td>
                 </tr>
               ))}

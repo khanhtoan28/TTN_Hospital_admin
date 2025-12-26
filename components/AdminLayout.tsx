@@ -4,6 +4,8 @@ import { ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
+import LoadingSpinner from '@/components/common/LoadingSpinner'
 import { LayoutDashboard, Award, Archive, Clock, FileText, LogOut, ArrowLeft, Users } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -13,12 +15,21 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
   const { username, logout } = useAuth()
+  const { loading } = useRequireAuth()
   const router = useRouter()
   const pathname = usePathname()
 
   const handleLogout = () => {
     logout()
     router.push('/login')
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
   }
 
   const menuItems = [
