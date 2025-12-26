@@ -93,3 +93,32 @@ export interface IntroductionRequest {
   content: string;
 }
 
+// User
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  phone?: string;
+  fullname: string;
+  avatar?: string;
+  isLocked: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserCreateRequest {
+  username: string;
+  password: string;
+  email: string;
+  phone?: string;
+  fullname: string;
+  avatar?: string;
+}
+
+export interface UserUpdateRequest {
+  fullname?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+}
+

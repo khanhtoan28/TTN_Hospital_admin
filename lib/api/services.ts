@@ -11,6 +11,9 @@ import {
   HistoryRequest,
   Introduction,
   IntroductionRequest,
+  User,
+  UserCreateRequest,
+  UserUpdateRequest,
   BaseResponse,
 } from './types';
 
@@ -110,6 +113,37 @@ export const introductionService = {
 
   delete: async (id: number): Promise<BaseResponse<void>> => {
     return apiClient.delete<void>(API_ENDPOINTS.INTRODUCTIONS.BY_ID(id));
+  },
+};
+
+// User Service
+export const userService = {
+  getAll: async (): Promise<BaseResponse<User[]>> => {
+    return apiClient.get<User[]>(API_ENDPOINTS.USERS.BASE);
+  },
+
+  getById: async (id: number): Promise<BaseResponse<User>> => {
+    return apiClient.get<User>(API_ENDPOINTS.USERS.BY_ID(id));
+  },
+
+  create: async (data: UserCreateRequest): Promise<BaseResponse<User>> => {
+    return apiClient.post<User>(API_ENDPOINTS.USERS.BASE, data);
+  },
+
+  update: async (id: number, data: UserUpdateRequest): Promise<BaseResponse<User>> => {
+    return apiClient.put<User>(API_ENDPOINTS.USERS.BY_ID(id), data);
+  },
+
+  delete: async (id: number): Promise<BaseResponse<void>> => {
+    return apiClient.delete<void>(API_ENDPOINTS.USERS.BY_ID(id));
+  },
+
+  lock: async (id: number): Promise<BaseResponse<User>> => {
+    return apiClient.put<User>(API_ENDPOINTS.USERS.LOCK(id), {});
+  },
+
+  unlock: async (id: number): Promise<BaseResponse<User>> => {
+    return apiClient.put<User>(API_ENDPOINTS.USERS.UNLOCK(id), {});
   },
 };
 

@@ -67,20 +67,6 @@ export default function NewArtifactPage() {
           />
         </div>
 
-        <div>
-          <label htmlFor="description" className="label-field">
-            Mô tả
-          </label>
-          <textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="input-field"
-            rows={4}
-            maxLength={1000}
-            placeholder="Mô tả về hiện vật..."
-          />
-        </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div>
@@ -141,6 +127,21 @@ export default function NewArtifactPage() {
             className="input-field"
             maxLength={500}
             placeholder="https://example.com/image.jpg"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="description" className="label-field">
+            Mô tả
+          </label>
+          <textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="input-field"
+            rows={4}
+            maxLength={1000}
+            placeholder="Mô tả về hiện vật..."
           />
         </div>
 

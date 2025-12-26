@@ -36,8 +36,19 @@ class ApiClient {
   private async handleResponse<T>(response: Response): Promise<BaseResponse<T>> {
     const data = await response.json();
 
+    // Trả về response data ngay cả khi có lỗi để frontend có thể xử lý
+    // Frontend sẽ check response.success để biết thành công hay thất bại
     if (!response.ok) {
-      throw new Error(data.error || data.message || 'Đã xảy ra lỗi');
+      // Nếu response có success field thì trả về luôn (để xử lý validation errors)
+      if (data.success !== undefined) {
+        return data;
+      }
+      // Nếu không có, tạo error response
+      return {
+        success: false,
+        error: data.error || data.message || 'Đã xảy ra lỗi',
+        message: data.message,
+      } as BaseResponse<T>;
     }
 
     return data;

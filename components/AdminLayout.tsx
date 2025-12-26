@@ -4,7 +4,7 @@ import { ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { LayoutDashboard, Award, Archive, Clock, FileText, LogOut, ArrowLeft } from 'lucide-react'
+import { LayoutDashboard, Award, Archive, Clock, FileText, LogOut, ArrowLeft, Users } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -27,6 +27,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     { name: 'Hiện Vật', href: '/dashboard/artifacts', icon: Archive },
     { name: 'Lịch Sử', href: '/dashboard/history', icon: Clock },
     { name: 'Giới Thiệu', href: '/dashboard/introduction', icon: FileText },
+    { name: 'Người Dùng', href: '/dashboard/users', icon: Users },
   ]
 
   return (

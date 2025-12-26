@@ -28,5 +28,12 @@ export const API_ENDPOINTS = {
     BASE: '/api/v1/introductions',
     BY_ID: (id: number | string) => `/api/v1/introductions/${id}`,
   },
+  // Users
+  USERS: {
+    BASE: '/api/v1/users',
+    BY_ID: (id: number | string) => `/api/v1/users/${id}`,
+    LOCK: (id: number | string) => `/api/v1/users/${id}/lock`,
+    UNLOCK: (id: number | string) => `/api/v1/users/${id}/unlock`,
+  },
 } as const;
 
