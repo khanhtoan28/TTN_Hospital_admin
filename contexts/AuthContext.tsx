@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { authService } from '@/lib/api/services';
 
 interface AuthContextType {
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     const response = await authService.login({ username, password });
     
     if (response.success && response.data) {
@@ -53,9 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       throw new Error(response.error || 'Đăng nhập thất bại');
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     setUserId(null);
     setUsername(null);
@@ -63,20 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    isAuthenticated: !!token,
+    token,
+    userId,
+    username,
+    login,
+    logout,
+    loading,
+  }), [token, userId, username, login, logout, loading]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated: !!token,
-        token,
-        userId,
-        username,
-        login,
-        logout,
-        loading,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -11,10 +12,14 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function IntroductionPage() {
+  const fetchFn = useCallback(() => introductionService.getAll(), [])
+  const deleteFn = useCallback((id: number) => introductionService.delete(id), [])
+  const getId = useCallback((intro: Introduction) => intro.introductionId, [])
+
   const { items: introductions, loading, error, deletingId, handleDelete } = useListPage<Introduction>({
-    fetchFn: () => introductionService.getAll(),
-    deleteFn: (id) => introductionService.delete(id),
-    getId: (intro) => intro.introductionId,
+    fetchFn,
+    deleteFn,
+    getId,
     deleteConfirmMessage: 'Bạn có chắc chắn muốn xóa phần giới thiệu này?',
   })
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -11,10 +12,14 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function GoldenBookPage() {
+  const fetchFn = useCallback(() => goldenBookService.getAll(), [])
+  const deleteFn = useCallback((id: number) => goldenBookService.delete(id), [])
+  const getId = useCallback((book: GoldenBook) => book.goldenBookId, [])
+
   const { items: books, loading, error, deletingId, handleDelete } = useListPage<GoldenBook>({
-    fetchFn: () => goldenBookService.getAll(),
-    deleteFn: (id) => goldenBookService.delete(id),
-    getId: (book) => book.goldenBookId,
+    fetchFn,
+    deleteFn,
+    getId,
     deleteConfirmMessage: 'Bạn có chắc chắn muốn xóa mục này?',
   })
 

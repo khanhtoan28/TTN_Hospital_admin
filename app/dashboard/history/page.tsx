@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -11,10 +12,14 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function HistoryPage() {
+  const fetchFn = useCallback(() => historyService.getAll(), [])
+  const deleteFn = useCallback((id: number) => historyService.delete(id), [])
+  const getId = useCallback((history: History) => history.historyId, [])
+
   const { items: histories, loading, error, deletingId, handleDelete } = useListPage<History>({
-    fetchFn: () => historyService.getAll(),
-    deleteFn: (id) => historyService.delete(id),
-    getId: (history) => history.historyId,
+    fetchFn,
+    deleteFn,
+    getId,
     deleteConfirmMessage: 'Bạn có chắc chắn muốn xóa mốc lịch sử này?',
   })
 

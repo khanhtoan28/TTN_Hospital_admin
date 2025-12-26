@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
 import { Edit, Trash2, Loader2 } from 'lucide-react'
 
@@ -11,7 +12,7 @@ interface ActionButtonsProps {
   editLabel?: string
 }
 
-export default function ActionButtons({
+const ActionButtons = memo(function ActionButtons({
   editHref,
   onDelete,
   deleting = false,
@@ -41,5 +42,7 @@ export default function ActionButtons({
       </button>
     </div>
   )
-}
+})
+
+export default ActionButtons
 

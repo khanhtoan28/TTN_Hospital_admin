@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -11,10 +11,14 @@ import { Edit, Trash2, Loader2, Lock, Unlock, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function UsersPage() {
+  const fetchFn = useCallback(() => userService.getAll(), [])
+  const deleteFn = useCallback((id: number) => userService.delete(id), [])
+  const getId = useCallback((user: User) => user.id, [])
+
   const { items: users, loading, error, deletingId, handleDelete, refetch } = useListPage<User>({
-    fetchFn: () => userService.getAll(),
-    deleteFn: (id) => userService.delete(id),
-    getId: (user) => user.id,
+    fetchFn,
+    deleteFn,
+    getId,
     deleteConfirmMessage: 'Bạn có chắc chắn muốn xóa người dùng này?',
   })
   const [lockingId, setLockingId] = useState<number | null>(null)

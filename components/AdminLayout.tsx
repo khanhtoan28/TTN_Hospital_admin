@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -19,10 +19,19 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout()
     router.push('/login')
-  }
+  }, [logout, router])
+
+  const menuItems = useMemo(() => [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Sổ Vàng', href: '/dashboard/golden-book', icon: Award },
+    { name: 'Hiện Vật', href: '/dashboard/artifacts', icon: Archive },
+    { name: 'Lịch Sử', href: '/dashboard/history', icon: Clock },
+    { name: 'Giới Thiệu', href: '/dashboard/introduction', icon: FileText },
+    { name: 'Người Dùng', href: '/dashboard/users', icon: Users },
+  ], [])
 
   if (loading) {
     return (
@@ -31,15 +40,6 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
       </div>
     )
   }
-
-  const menuItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Sổ Vàng', href: '/dashboard/golden-book', icon: Award },
-    { name: 'Hiện Vật', href: '/dashboard/artifacts', icon: Archive },
-    { name: 'Lịch Sử', href: '/dashboard/history', icon: Clock },
-    { name: 'Giới Thiệu', href: '/dashboard/introduction', icon: FileText },
-    { name: 'Người Dùng', href: '/dashboard/users', icon: Users },
-  ]
 
   return (
     <div className="min-h-screen bg-gray-50">

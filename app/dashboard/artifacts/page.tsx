@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -11,10 +12,14 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ArtifactsPage() {
+  const fetchFn = useCallback(() => artifactsService.getAll(), [])
+  const deleteFn = useCallback((id: number) => artifactsService.delete(id), [])
+  const getId = useCallback((artifact: Artifact) => artifact.artifactId, [])
+
   const { items: artifacts, loading, error, deletingId, handleDelete } = useListPage<Artifact>({
-    fetchFn: () => artifactsService.getAll(),
-    deleteFn: (id) => artifactsService.delete(id),
-    getId: (artifact) => artifact.artifactId,
+    fetchFn,
+    deleteFn,
+    getId,
     deleteConfirmMessage: 'Bạn có chắc chắn muốn xóa hiện vật này?',
   })
 

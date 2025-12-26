@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRequireAuth } from './useRequireAuth'
 
 interface UseListPageOptions<T> {
@@ -23,18 +23,24 @@ export function useListPage<T>({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [deletingId, setDeletingId] = useState<number | null>(null)
-
+  
+  // Use refs to store latest values without causing re-renders
+  const fetchFnRef = useRef(fetchFn)
+  const deleteFnRef = useRef(deleteFn)
+  const getIdRef = useRef(getId)
+  
+  // Update refs when props change
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchItems()
-    }
-  }, [isAuthenticated])
+    fetchFnRef.current = fetchFn
+    deleteFnRef.current = deleteFn
+    getIdRef.current = getId
+  }, [fetchFn, deleteFn, getId])
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     try {
       setLoading(true)
       setError('')
-      const response = await fetchFn()
+      const response = await fetchFnRef.current()
       if (response.success && response.data) {
         setItems(response.data)
       } else {
@@ -45,18 +51,24 @@ export function useListPage<T>({
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleDelete = async (id: number) => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchItems()
+    }
+  }, [isAuthenticated, fetchItems])
+
+  const handleDelete = useCallback(async (id: number) => {
     if (!confirm(deleteConfirmMessage)) {
       return
     }
 
     try {
       setDeletingId(id)
-      const response = await deleteFn(id)
+      const response = await deleteFnRef.current(id)
       if (response.success) {
-        setItems(items.filter((item) => getId(item) !== id))
+        setItems((prevItems) => prevItems.filter((item) => getIdRef.current(item) !== id))
         if (deleteSuccessMessage) {
           alert(deleteSuccessMessage)
         }
@@ -68,7 +80,7 @@ export function useListPage<T>({
     } finally {
       setDeletingId(null)
     }
-  }
+  }, [deleteConfirmMessage, deleteSuccessMessage])
 
   return {
     items,
