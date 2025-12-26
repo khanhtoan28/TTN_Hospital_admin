@@ -122,3 +122,22 @@ export interface UserUpdateRequest {
   avatar?: string;
 }
 
+// Image
+export interface Image {
+  imageId: number;
+  filename: string;
+  originalFilename: string;
+  filePath: string;
+  url: string;
+  fileSize: number;
+  contentType: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImageUploadRequest {
+  file: File;
+  description?: string;
+}
+

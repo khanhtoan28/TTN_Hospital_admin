@@ -35,5 +35,14 @@ export const API_ENDPOINTS = {
     LOCK: (id: number | string) => `/api/v1/users/${id}/lock`,
     UNLOCK: (id: number | string) => `/api/v1/users/${id}/unlock`,
   },
+  // Images
+  IMAGES: {
+    BASE: '/api/v1/images',
+    BY_ID: (id: number | string) => `/api/v1/images/${id}`,
+    UPLOAD: '/api/v1/images/upload',
+    UPLOAD_MULTIPLE: '/api/v1/images/upload/multiple',
+    DOWNLOAD: (id: number | string) => `/api/v1/images/${id}/download`,
+    REPLACE: (id: number | string) => `/api/v1/images/${id}/replace`,
+  },
 } as const;
 

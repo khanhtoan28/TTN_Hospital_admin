@@ -103,6 +103,55 @@ class ApiClient {
 
     return this.handleResponse<T>(response);
   }
+
+  // POST request với FormData (cho file upload)
+  async postFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    requireAuth: boolean = true
+  ): Promise<BaseResponse<T>> {
+    const headers: HeadersInit = {};
+
+    if (requireAuth) {
+      const token = this.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    // Không set Content-Type, browser sẽ tự động set với boundary cho FormData
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    return this.handleResponse<T>(response);
+  }
+
+  // PUT request với FormData (cho file replace)
+  async putFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    requireAuth: boolean = true
+  ): Promise<BaseResponse<T>> {
+    const headers: HeadersInit = {};
+
+    if (requireAuth) {
+      const token = this.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'PUT',
+      headers,
+      body: formData,
+    });
+
+    return this.handleResponse<T>(response);
+  }
 }
 
 export const apiClient = new ApiClient();

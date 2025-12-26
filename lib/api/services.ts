@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { API_ENDPOINTS } from './config';
+import { API_ENDPOINTS, API_CONFIG } from './config';
 import {
   LoginRequest,
   LoginResponse,
@@ -14,6 +14,8 @@ import {
   User,
   UserCreateRequest,
   UserUpdateRequest,
+  Image,
+  ImageUploadRequest,
   BaseResponse,
 } from './types';
 
@@ -144,6 +146,59 @@ export const userService = {
 
   unlock: async (id: number): Promise<BaseResponse<User>> => {
     return apiClient.put<User>(API_ENDPOINTS.USERS.UNLOCK(id), {});
+  },
+};
+
+// Image Service
+export const imageService = {
+  getAll: async (): Promise<BaseResponse<Image[]>> => {
+    return apiClient.get<Image[]>(API_ENDPOINTS.IMAGES.BASE, false);
+  },
+
+  getById: async (id: number): Promise<BaseResponse<Image>> => {
+    return apiClient.get<Image>(API_ENDPOINTS.IMAGES.BY_ID(id), false);
+  },
+
+  upload: async (file: File, description?: string): Promise<BaseResponse<Image>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (description) {
+      formData.append('description', description);
+    }
+    return apiClient.postFormData<Image>(API_ENDPOINTS.IMAGES.UPLOAD, formData);
+  },
+
+  uploadMultiple: async (files: File[], description?: string): Promise<BaseResponse<Image[]>> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    if (description) {
+      formData.append('description', description);
+    }
+    return apiClient.postFormData<Image[]>(API_ENDPOINTS.IMAGES.UPLOAD_MULTIPLE, formData);
+  },
+
+  update: async (id: number, description?: string): Promise<BaseResponse<Image>> => {
+    const formData = new FormData();
+    if (description) {
+      formData.append('description', description);
+    }
+    return apiClient.putFormData<Image>(API_ENDPOINTS.IMAGES.BY_ID(id), formData);
+  },
+
+  replace: async (id: number, file: File): Promise<BaseResponse<Image>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.putFormData<Image>(API_ENDPOINTS.IMAGES.REPLACE(id), formData);
+  },
+
+  delete: async (id: number): Promise<BaseResponse<void>> => {
+    return apiClient.delete<void>(API_ENDPOINTS.IMAGES.BY_ID(id));
+  },
+
+  getDownloadUrl: (id: number): string => {
+    return `${API_CONFIG.BASE_URL}${API_ENDPOINTS.IMAGES.DOWNLOAD(id)}`;
   },
 };
 

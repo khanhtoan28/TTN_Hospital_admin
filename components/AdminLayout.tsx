@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRequireAuth } from '@/hooks/useRequireAuth'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
-import { LayoutDashboard, Award, Archive, Clock, FileText, LogOut, ArrowLeft, Users } from 'lucide-react'
+import { LayoutDashboard, Award, Archive, Clock, FileText, LogOut, ArrowLeft, Users, Image as ImageIcon } from 'lucide-react'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -30,6 +30,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     { name: 'Hiện Vật', href: '/dashboard/artifacts', icon: Archive },
     { name: 'Lịch Sử', href: '/dashboard/history', icon: Clock },
     { name: 'Giới Thiệu', href: '/dashboard/introduction', icon: FileText },
+    { name: 'Kho Ảnh', href: '/dashboard/images', icon: ImageIcon },
     { name: 'Người Dùng', href: '/dashboard/users', icon: Users },
   ], [])
 
