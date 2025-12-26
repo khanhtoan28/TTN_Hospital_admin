@@ -94,8 +94,9 @@ export default function EditUserPage() {
         router.push('/dashboard/users')
       } else {
         // Xử lý validation errors nếu có
-        if (response.data && typeof response.data === 'object') {
-          const errors = Object.values(response.data as Record<string, string>).join(', ')
+        if (response.data && typeof response.data === 'object' && !('id' in response.data)) {
+          // Nếu response.data không phải là User object (không có field 'id'), có thể là error object
+          const errors = Object.values(response.data as unknown as Record<string, string>).join(', ')
           setError(errors || response.error || 'Cập nhật thất bại')
         } else {
           setError(response.error || response.message || 'Cập nhật thất bại')

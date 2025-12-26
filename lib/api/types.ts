@@ -6,6 +6,19 @@ export interface BaseResponse<T> {
   error?: string;
 }
 
+// Pagination Response
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 // Auth
 export interface LoginRequest {
   username: string;

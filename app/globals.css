@@ -60,5 +60,46 @@
   html {
     scroll-behavior: smooth;
   }
+  
+  /* Tối ưu hiển thị ảnh - làm nét */
+  img {
+    -ms-interpolation-mode: bicubic;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Tối ưu GPU acceleration */
+    will-change: transform;
+    /* Chất lượng render tốt nhất */
+    image-rendering: auto;
+  }
+  
+  /* Tối ưu ảnh trong modal - hiển thị nét nhất */
+  .image-optimized {
+    /* Sử dụng GPU để render ảnh nét hơn */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* Tối ưu chất lượng ảnh */
+    image-rendering: -webkit-optimize-contrast;
+    -ms-interpolation-mode: bicubic;
+    /* Smooth scaling */
+    image-rendering: auto;
+    /* Tối ưu hiệu suất */
+    will-change: transform, opacity;
+    /* Chất lượng cao */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Lazy loading optimization */
+  img[loading="lazy"] {
+    content-visibility: auto;
+  }
+  
+  /* Tối ưu ảnh preview - chất lượng cao */
+  img[class*="object-contain"] {
+    image-rendering: auto;
+    -ms-interpolation-mode: bicubic;
+  }
 }
 

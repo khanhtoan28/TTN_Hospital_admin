@@ -97,7 +97,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         {/* Main Content */}
         <main className="flex-1 p-8">
           <div className="mb-6">
-            {pathname !== '/dashboard' && (
+            {/* {pathname !== '/dashboard' && (
               <Link
                 href="/dashboard"
                 className="inline-flex items-center text-primary-dark hover:text-primary-dark/80 mb-4"
@@ -105,7 +105,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Về Dashboard
               </Link>
-            )}
+            )} */}
             <h2 className="text-3xl font-bold text-primary-dark">{title}</h2>
           </div>
           {children}

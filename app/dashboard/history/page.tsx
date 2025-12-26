@@ -71,7 +71,11 @@ export default function HistoryPage() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {histories.map((history) => (
-                <tr key={history.historyId} className="hover:bg-gray-50">
+                <tr 
+                  key={history.historyId} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onDoubleClick={() => window.location.href = `/dashboard/history/view/${history.historyId}`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{history.historyId}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{history.year}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{history.title}</td>
@@ -81,7 +85,7 @@ export default function HistoryPage() {
                   <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                     {history.description || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     <ActionButtons
                       editHref={`/dashboard/history/${history.historyId}`}
                       onDelete={() => handleDelete(history.historyId)}

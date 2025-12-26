@@ -71,7 +71,11 @@ export default function IntroductionPage() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {introductions.map((intro) => (
-                <tr key={intro.introductionId} className="hover:bg-gray-50">
+                <tr 
+                  key={intro.introductionId} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onDoubleClick={() => window.location.href = `/dashboard/introduction/view/${intro.introductionId}`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intro.introductionId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{intro.section}</td>
                   <td className="px-6 py-4 text-sm text-gray-600 max-w-md truncate">
@@ -83,7 +87,7 @@ export default function IntroductionPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {new Date(intro.updatedAt).toLocaleDateString('vi-VN')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     <ActionButtons
                       editHref={`/dashboard/introduction/${intro.introductionId}`}
                       onDelete={() => handleDelete(intro.introductionId)}

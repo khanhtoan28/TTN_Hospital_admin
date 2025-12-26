@@ -71,13 +71,17 @@ export default function GoldenBookPage() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {books.map((book) => (
-                <tr key={book.goldenBookId} className="hover:bg-gray-50">
+                <tr 
+                  key={book.goldenBookId} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onDoubleClick={() => window.location.href = `/dashboard/golden-book/view/${book.goldenBookId}`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.goldenBookId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{book.goldenBookName}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{book.level}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{book.year}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{book.department}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     <ActionButtons
                       editHref={`/dashboard/golden-book/${book.goldenBookId}`}
                       onDelete={() => handleDelete(book.goldenBookId)}

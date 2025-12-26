@@ -28,6 +28,8 @@ export default function ImagesPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [previewImage, setPreviewImage] = useState<Image | null>(null)
+  const [imageLoading, setImageLoading] = useState(false)
+  const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
   const multipleFileInputRef = useRef<HTMLInputElement>(null)
 
@@ -98,7 +100,44 @@ export default function ImagesPage() {
 
   const handleDoubleClick = (image: Image) => {
     setPreviewImage(image)
+    setImageLoading(true)
   }
+
+  // Preload image khi hover vào row để tăng tốc độ load
+  const handleRowHover = useCallback((image: Image) => {
+    if (!preloadedImages.has(image.imageId)) {
+      const img = new window.Image()
+      const token = localStorage.getItem('accessToken')
+      const url = imageService.getDownloadUrl(image.imageId)
+      
+      img.onload = () => {
+        setPreloadedImages(prev => new Set(prev).add(image.imageId))
+      }
+      
+      // Preload với token để cache sẵn
+      if (token) {
+        fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          cache: 'force-cache'
+        })
+          .then(res => res.blob())
+          .then(blob => {
+            const objectUrl = URL.createObjectURL(blob)
+            img.src = objectUrl
+            // Cleanup sau 10 phút
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 600000)
+          })
+          .catch(() => {
+            // Fallback nếu fetch fail
+            img.src = url
+          })
+      } else {
+        img.src = url
+      }
+    }
+  }, [preloadedImages])
 
   const handleDownload = async (image: Image) => {
     try {
@@ -223,6 +262,7 @@ export default function ImagesPage() {
                 <tr
                   key={image.imageId}
                   onDoubleClick={() => handleDoubleClick(image)}
+                  onMouseEnter={() => handleRowHover(image)}
                   className="group hover:bg-blue-50 cursor-pointer transition-colors duration-150"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -324,13 +364,36 @@ export default function ImagesPage() {
               <X className="w-6 h-6" />
             </button>
 
-            {/* Image */}
-            <img
-              src={imageService.getDownloadUrl(previewImage.imageId)}
-              alt={previewImage.originalFilename}
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {/* Image with Loading State */}
+            <div className="relative w-full h-full flex items-center justify-center">
+              {imageLoading && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                  <Loader2 className="w-12 h-12 text-white animate-spin" />
+                </div>
+              )}
+              <img
+                key={previewImage.imageId}
+                src={imageService.getDownloadUrl(previewImage.imageId)}
+                alt={previewImage.originalFilename}
+                className={`max-w-full max-h-full object-contain rounded-lg shadow-2xl image-optimized transition-opacity duration-300 ${
+                  imageLoading ? 'opacity-0' : 'opacity-100'
+                }`}
+                onClick={(e) => e.stopPropagation()}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+                onLoad={() => {
+                  setImageLoading(false)
+                  setPreloadedImages(prev => new Set(prev).add(previewImage.imageId))
+                }}
+                onError={() => setImageLoading(false)}
+                onLoadStart={() => {
+                  if (!preloadedImages.has(previewImage.imageId)) {
+                    setImageLoading(true)
+                  }
+                }}
+              />
+            </div>
 
             {/* Image Info Bar */}
             <div

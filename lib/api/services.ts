@@ -17,6 +17,7 @@ import {
   Image,
   ImageUploadRequest,
   BaseResponse,
+  PageResponse,
 } from './types';
 
 // Auth Service
@@ -119,9 +120,32 @@ export const introductionService = {
 };
 
 // User Service
+export interface UserPaginationParams {
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDir?: 'ASC' | 'DESC';
+  search?: string;
+}
+
 export const userService = {
   getAll: async (): Promise<BaseResponse<User[]>> => {
     return apiClient.get<User[]>(API_ENDPOINTS.USERS.BASE);
+  },
+
+  getAllPaginated: async (params?: UserPaginationParams): Promise<BaseResponse<PageResponse<User>>> => {
+    const queryParams = new URLSearchParams();
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortDir) queryParams.append('sortDir', params.sortDir);
+    if (params?.search) queryParams.append('search', params.search);
+    
+    const endpoint = queryParams.toString() 
+      ? `${API_ENDPOINTS.USERS.BASE}?${queryParams.toString()}`
+      : API_ENDPOINTS.USERS.BASE;
+    
+    return apiClient.get<PageResponse<User>>(endpoint);
   },
 
   getById: async (id: number): Promise<BaseResponse<User>> => {

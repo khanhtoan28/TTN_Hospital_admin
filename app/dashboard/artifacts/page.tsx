@@ -72,7 +72,11 @@ export default function ArtifactsPage() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {artifacts.map((artifact) => (
-                <tr key={artifact.artifactId} className="hover:bg-gray-50">
+                <tr 
+                  key={artifact.artifactId} 
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onDoubleClick={() => window.location.href = `/dashboard/artifacts/view/${artifact.artifactId}`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artifact.artifactId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{artifact.artifactName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
@@ -87,7 +91,7 @@ export default function ArtifactsPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {artifact.space || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     <ActionButtons
                       editHref={`/dashboard/artifacts/${artifact.artifactId}`}
                       onDelete={() => handleDelete(artifact.artifactId)}
