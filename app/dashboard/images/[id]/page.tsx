@@ -22,12 +22,52 @@ export default function EditImagePage() {
   const [error, setError] = useState('')
   const [image, setImage] = useState<Image | null>(null)
   const [description, setDescription] = useState('')
+  const [imageUrl, setImageUrl] = useState<string>('')
 
   useEffect(() => {
     if (imageId) {
       fetchImage()
     }
   }, [imageId])
+
+  // Cleanup: revoke object URL khi imageUrl thay đổi hoặc component unmount
+  useEffect(() => {
+    return () => {
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl)
+      }
+    }
+  }, [imageUrl])
+
+  const loadImageWithAuth = async (id: number, imageData?: Image) => {
+    try {
+      const token = localStorage.getItem('accessToken')
+      const url = imageService.getDownloadUrl(id)
+      
+      const response = await fetch(url, {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`
+        } : {}
+      })
+
+      if (!response.ok) {
+        throw new Error('Không thể tải ảnh')
+      }
+
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      setImageUrl(objectUrl)
+    } catch (err: any) {
+      console.error('Lỗi khi tải ảnh:', err)
+      // Fallback: thử dùng URL trực tiếp nếu có
+      if (imageData?.url) {
+        const { API_CONFIG } = await import('@/lib/api/config')
+        setImageUrl(`${API_CONFIG.BASE_URL}${imageData.url}`)
+      } else {
+        setImageUrl(imageService.getDownloadUrl(id))
+      }
+    }
+  }
 
   const fetchImage = async () => {
     try {
@@ -44,6 +84,8 @@ export default function EditImagePage() {
       if (response.success && response.data) {
         setImage(response.data)
         setDescription(response.data.description || '')
+        // Fetch ảnh với Authorization header
+        await loadImageWithAuth(response.data.imageId, response.data)
       } else {
         setError(response.error || 'Không tìm thấy ảnh')
       }
@@ -121,6 +163,8 @@ export default function EditImagePage() {
       const response = await imageService.replace(image.imageId, file)
       if (response.success && response.data) {
         setImage(response.data)
+        // Reload ảnh mới với auth
+        await loadImageWithAuth(response.data.imageId, response.data)
         alert('Thay thế ảnh thành công')
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
@@ -174,11 +218,28 @@ export default function EditImagePage() {
           <div className="card">
             <h3 className="text-lg font-bold text-primary-dark mb-4">Xem trước</h3>
             <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-              <img
-                src={imageService.getDownloadUrl(image.imageId)}
-                alt={image.originalFilename}
-                className="w-full h-full object-cover"
-              />
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={image.originalFilename}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('Lỗi khi hiển thị ảnh')
+                    // Fallback nếu blob URL fail
+                    const target = e.target as HTMLImageElement
+                    if (image.url) {
+                      const { API_CONFIG } = require('@/lib/api/config')
+                      target.src = `${API_CONFIG.BASE_URL}${image.url}`
+                    } else {
+                      target.src = imageService.getDownloadUrl(image.imageId)
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                </div>
+              )}
             </div>
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">

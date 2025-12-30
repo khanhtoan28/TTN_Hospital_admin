@@ -28,6 +28,7 @@ export default function ImagesPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
   const [previewImage, setPreviewImage] = useState<Image | null>(null)
+  const [previewImageUrl, setPreviewImageUrl] = useState<string>('')
   const [imageLoading, setImageLoading] = useState(false)
   const [preloadedImages, setPreloadedImages] = useState<Set<number>>(new Set())
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -98,9 +99,43 @@ export default function ImagesPage() {
     }
   }
 
-  const handleDoubleClick = (image: Image) => {
+  const handleDoubleClick = async (image: Image) => {
     setPreviewImage(image)
     setImageLoading(true)
+    // Load ảnh với Authorization header
+    await loadPreviewImageWithAuth(image)
+  }
+
+  const loadPreviewImageWithAuth = async (image: Image) => {
+    try {
+      const token = localStorage.getItem('accessToken')
+      const url = imageService.getDownloadUrl(image.imageId)
+      
+      const response = await fetch(url, {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`
+        } : {}
+      })
+
+      if (!response.ok) {
+        throw new Error('Không thể tải ảnh')
+      }
+
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      setPreviewImageUrl(objectUrl)
+      setImageLoading(false)
+    } catch (err: any) {
+      console.error('Lỗi khi tải ảnh:', err)
+      // Fallback: thử dùng URL trực tiếp nếu có
+      if (image.url) {
+        const { API_CONFIG } = await import('@/lib/api/config')
+        setPreviewImageUrl(`${API_CONFIG.BASE_URL}${image.url}`)
+      } else {
+        setPreviewImageUrl(imageService.getDownloadUrl(image.imageId))
+      }
+      setImageLoading(false)
+    }
   }
 
   // Preload image khi hover vào row để tăng tốc độ load
@@ -353,7 +388,14 @@ export default function ImagesPage() {
       {previewImage && (
         <div
           className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
-          onClick={() => setPreviewImage(null)}
+          onClick={() => {
+            // Cleanup blob URL khi đóng modal
+            if (previewImageUrl && previewImageUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(previewImageUrl)
+            }
+            setPreviewImage(null)
+            setPreviewImageUrl('')
+          }}
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
             {/* Close Button */}
@@ -371,28 +413,45 @@ export default function ImagesPage() {
                   <Loader2 className="w-12 h-12 text-white animate-spin" />
                 </div>
               )}
-              <img
-                key={previewImage.imageId}
-                src={imageService.getDownloadUrl(previewImage.imageId)}
-                alt={previewImage.originalFilename}
-                className={`max-w-full max-h-full object-contain rounded-lg shadow-2xl image-optimized transition-opacity duration-300 ${
-                  imageLoading ? 'opacity-0' : 'opacity-100'
-                }`}
-                onClick={(e) => e.stopPropagation()}
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
-                onLoad={() => {
-                  setImageLoading(false)
-                  setPreloadedImages(prev => new Set(prev).add(previewImage.imageId))
-                }}
-                onError={() => setImageLoading(false)}
-                onLoadStart={() => {
-                  if (!preloadedImages.has(previewImage.imageId)) {
-                    setImageLoading(true)
-                  }
-                }}
-              />
+              {previewImageUrl ? (
+                <img
+                  key={previewImage.imageId}
+                  src={previewImageUrl}
+                  alt={previewImage.originalFilename}
+                  className={`max-w-full max-h-full object-contain rounded-lg shadow-2xl image-optimized transition-opacity duration-300 ${
+                    imageLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  onLoad={() => {
+                    setImageLoading(false)
+                    setPreloadedImages(prev => new Set(prev).add(previewImage.imageId))
+                  }}
+                  onError={(e) => {
+                    console.error('Lỗi khi hiển thị ảnh')
+                    // Fallback nếu blob URL fail
+                    const target = e.target as HTMLImageElement
+                    if (previewImage.url) {
+                      const { API_CONFIG } = require('@/lib/api/config')
+                      target.src = `${API_CONFIG.BASE_URL}${previewImage.url}`
+                    } else {
+                      target.src = imageService.getDownloadUrl(previewImage.imageId)
+                    }
+                    setImageLoading(false)
+                  }}
+                  onLoadStart={() => {
+                    if (!preloadedImages.has(previewImage.imageId)) {
+                      setImageLoading(true)
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Loader2 className="w-12 h-12 text-white animate-spin" />
+                </div>
+              )}
             </div>
 
             {/* Image Info Bar */}
