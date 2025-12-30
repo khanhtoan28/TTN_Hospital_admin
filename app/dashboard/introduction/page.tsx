@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -12,6 +13,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function IntroductionPage() {
+  const router = useRouter()
   const fetchFn = useCallback(() => introductionService.getAll(), [])
   const deleteFn = useCallback((id: number) => introductionService.delete(id), [])
   const getId = useCallback((intro: Introduction) => intro.introductionId, [])
@@ -74,7 +76,7 @@ export default function IntroductionPage() {
                 <tr 
                   key={intro.introductionId} 
                   className="hover:bg-gray-50 cursor-pointer"
-                  onDoubleClick={() => window.location.href = `/dashboard/introduction/view/${intro.introductionId}`}
+                  onDoubleClick={() => router.push(`/dashboard/introduction/view/${intro.introductionId}`)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{intro.introductionId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{intro.section}</td>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -12,6 +13,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function GoldenBookPage() {
+  const router = useRouter()
   const fetchFn = useCallback(() => goldenBookService.getAll(), [])
   const deleteFn = useCallback((id: number) => goldenBookService.delete(id), [])
   const getId = useCallback((book: GoldenBook) => book.goldenBookId, [])
@@ -74,7 +76,7 @@ export default function GoldenBookPage() {
                 <tr 
                   key={book.goldenBookId} 
                   className="hover:bg-gray-50 cursor-pointer"
-                  onDoubleClick={() => window.location.href = `/dashboard/golden-book/view/${book.goldenBookId}`}
+                  onDoubleClick={() => router.push(`/dashboard/golden-book/view/${book.goldenBookId}`)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{book.goldenBookId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{book.goldenBookName}</td>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -12,6 +13,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ArtifactsPage() {
+  const router = useRouter()
   const fetchFn = useCallback(() => artifactsService.getAll(), [])
   const deleteFn = useCallback((id: number) => artifactsService.delete(id), [])
   const getId = useCallback((artifact: Artifact) => artifact.artifactId, [])
@@ -75,7 +77,7 @@ export default function ArtifactsPage() {
                 <tr 
                   key={artifact.artifactId} 
                   className="hover:bg-gray-50 cursor-pointer"
-                  onDoubleClick={() => window.location.href = `/dashboard/artifacts/view/${artifact.artifactId}`}
+                  onDoubleClick={() => router.push(`/dashboard/artifacts/view/${artifact.artifactId}`)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{artifact.artifactId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{artifact.artifactName}</td>

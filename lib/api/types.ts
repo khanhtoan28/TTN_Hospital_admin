@@ -49,6 +49,7 @@ export interface GoldenBookRequest {
   year: number;
   department: string;
   image?: string;
+  imageId?: number;
   description?: string;
 }
 
@@ -67,6 +68,7 @@ export interface ArtifactRequest {
   name: string;
   description?: string;
   imageUrl?: string;
+  imageId?: number;
   period?: string;
   type?: string;
   space?: string;
@@ -89,7 +91,9 @@ export interface HistoryRequest {
   period: string;
   description: string;
   icon?: string;
+  iconImageId?: number;
   image?: string;
+  imageId?: number;
 }
 
 // Introduction

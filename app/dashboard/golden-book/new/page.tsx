@@ -8,6 +8,7 @@ import { goldenBookService } from '@/lib/api/services'
 import { GoldenBookRequest } from '@/lib/api/types'
 import { Save, X } from 'lucide-react'
 import Link from 'next/link'
+import ImagePicker from '@/components/common/ImagePicker'
 
 export default function NewGoldenBookPage() {
   const { isAuthenticated } = useAuth()
@@ -20,6 +21,7 @@ export default function NewGoldenBookPage() {
     year: new Date().getFullYear(),
     department: '',
     image: '',
+    imageId: undefined,
     description: '',
   })
 
@@ -115,20 +117,18 @@ export default function NewGoldenBookPage() {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="image" className="label-field">
-            URL hình ảnh
-          </label>
-          <input
-            id="image"
-            type="url"
-            value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            className="input-field"
-            maxLength={255}
-            placeholder="https://example.com/image.jpg"
-          />
-        </div>
+        <ImagePicker
+          value={formData.imageId}
+          imageUrl={formData.image}
+          onSelect={(imageId, imageUrl) => {
+            setFormData({
+              ...formData,
+              imageId: imageId || undefined,
+              image: imageUrl || undefined,
+            })
+          }}
+          label="Hình ảnh"
+        />
 
         <div>
           <label htmlFor="description" className="label-field">

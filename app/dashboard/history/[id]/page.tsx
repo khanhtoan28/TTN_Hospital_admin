@@ -8,6 +8,7 @@ import { historyService } from '@/lib/api/services'
 import { HistoryRequest } from '@/lib/api/types'
 import { Save, X, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import ImagePicker from '@/components/common/ImagePicker'
 
 export default function EditHistoryPage() {
   const { isAuthenticated } = useAuth()
@@ -24,7 +25,9 @@ export default function EditHistoryPage() {
     period: '',
     description: '',
     icon: '',
+    iconImageId: undefined,
     image: '',
+    imageId: undefined,
   })
 
   useEffect(() => {
@@ -189,35 +192,33 @@ export default function EditHistoryPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="icon" className="label-field">
-              URL Icon
-            </label>
-            <input
-              id="icon"
-              type="url"
-              value={formData.icon}
-              onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-              className="input-field"
-              maxLength={255}
-              placeholder="https://example.com/icon.svg"
-            />
-          </div>
+          <ImagePicker
+            value={formData.iconImageId}
+            imageUrl={formData.icon}
+            onSelect={(imageId, imageUrl) => {
+              setFormData({
+                ...formData,
+                iconImageId: imageId || undefined,
+                icon: imageUrl || undefined,
+              })
+            }}
+            label="Icon"
+            placeholder="Chọn icon hoặc nhập URL"
+          />
 
-          <div>
-            <label htmlFor="image" className="label-field">
-              URL Hình ảnh
-            </label>
-            <input
-              id="image"
-              type="url"
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="input-field"
-              maxLength={255}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+          <ImagePicker
+            value={formData.imageId}
+            imageUrl={formData.image}
+            onSelect={(imageId, imageUrl) => {
+              setFormData({
+                ...formData,
+                imageId: imageId || undefined,
+                image: imageUrl || undefined,
+              })
+            }}
+            label="Hình ảnh"
+            placeholder="Chọn hình ảnh hoặc nhập URL"
+          />
         </div>
 
         <div className="flex space-x-4">

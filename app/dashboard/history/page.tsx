@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
@@ -12,6 +13,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 
 export default function HistoryPage() {
+  const router = useRouter()
   const fetchFn = useCallback(() => historyService.getAll(), [])
   const deleteFn = useCallback((id: number) => historyService.delete(id), [])
   const getId = useCallback((history: History) => history.historyId, [])
@@ -74,7 +76,7 @@ export default function HistoryPage() {
                 <tr 
                   key={history.historyId} 
                   className="hover:bg-gray-50 cursor-pointer"
-                  onDoubleClick={() => window.location.href = `/dashboard/history/view/${history.historyId}`}
+                  onDoubleClick={() => router.push(`/dashboard/history/view/${history.historyId}`)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{history.historyId}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{history.year}</td>

@@ -1,84 +1,47 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/AdminLayout'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ErrorMessage from '@/components/common/ErrorMessage'
+import Pagination from '@/components/common/Pagination'
+import SortableTableHeader from '@/components/common/SortableTableHeader'
+import { usePagination } from '@/hooks/usePagination'
 import { userService } from '@/lib/api/services'
-import { User, PageResponse } from '@/lib/api/types'
-import { Edit, Trash2, Loader2, Lock, Unlock, Plus, ChevronLeft, ChevronRight, ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { User } from '@/lib/api/types'
+import { Edit, Trash2, Loader2, Lock, Unlock, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
 
 export default function UsersPage() {
   const router = useRouter()
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState(0)
-  const [size, setSize] = useState(10)
-  const [totalElements, setTotalElements] = useState(0)
-  const [totalPages, setTotalPages] = useState(0)
-  const [hasNext, setHasNext] = useState(false)
-  const [hasPrevious, setHasPrevious] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [lockingId, setLockingId] = useState<number | null>(null)
-  const [search, setSearch] = useState<string>('')
-  const [searchDebounced, setSearchDebounced] = useState<string>('')
-  const [sortBy, setSortBy] = useState<string>('createdAt') // Backend field name
-  const [sortDir, setSortDir] = useState<'ASC' | 'DESC'>('DESC')
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await userService.getAllPaginated({
-        page,
-        size,
-        sortBy,
-        sortDir,
-        search: searchDebounced.trim() || undefined,
-      })
-      
-      if (response.success && response.data) {
-        const pageData: PageResponse<User> = response.data
-        setUsers(pageData.content)
-        setTotalElements(pageData.totalElements)
-        setTotalPages(pageData.totalPages)
-        setHasNext(pageData.hasNext)
-        setHasPrevious(pageData.hasPrevious)
-      } else {
-        setError(response.error || 'Không thể tải danh sách người dùng')
-      }
-    } catch (err: any) {
-      setError(err.message || 'Đã xảy ra lỗi khi tải danh sách người dùng')
-    } finally {
-      setLoading(false)
-    }
-  }, [page, size, sortBy, sortDir, searchDebounced])
-
-  // Debounce search input
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-    
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchDebounced(search)
-      setPage(0) // Reset về trang đầu khi search thay đổi
-    }, 500) // 500ms delay
-    
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
-    }
-  }, [search])
-
-  useEffect(() => {
-    fetchUsers()
-  }, [fetchUsers])
+  const {
+    items: users,
+    loading,
+    error,
+    page,
+    size,
+    totalElements,
+    totalPages,
+    hasNext,
+    hasPrevious,
+    search,
+    sortBy,
+    sortDir,
+    pageNumbers,
+    handlePageChange,
+    handleSizeChange,
+    handleSearchChange,
+    handleSort,
+    refetch,
+  } = usePagination<User>({
+    fetchFn: useCallback((params) => userService.getAllPaginated(params), []),
+    initialSortBy: 'createdAt',
+    initialSortDir: 'DESC',
+  })
 
   const handleDelete = useCallback(async (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
@@ -89,7 +52,7 @@ export default function UsersPage() {
       setDeletingId(id)
       const response = await userService.delete(id)
       if (response.success) {
-        fetchUsers()
+        refetch()
       } else {
         alert(response.error || 'Xóa người dùng thất bại')
       }
@@ -98,14 +61,14 @@ export default function UsersPage() {
     } finally {
       setDeletingId(null)
     }
-  }, [fetchUsers])
+  }, [refetch])
 
   const handleLock = useCallback(async (id: number) => {
     try {
       setLockingId(id)
       const response = await userService.lock(id)
       if (response.success) {
-        fetchUsers()
+        refetch()
       } else {
         alert(response.error || 'Khóa tài khoản thất bại')
       }
@@ -114,14 +77,14 @@ export default function UsersPage() {
     } finally {
       setLockingId(null)
     }
-  }, [fetchUsers])
+  }, [refetch])
 
   const handleUnlock = useCallback(async (id: number) => {
     try {
       setLockingId(id)
       const response = await userService.unlock(id)
       if (response.success) {
-        fetchUsers()
+        refetch()
       } else {
         alert(response.error || 'Mở khóa tài khoản thất bại')
       }
@@ -130,85 +93,7 @@ export default function UsersPage() {
     } finally {
       setLockingId(null)
     }
-  }, [fetchUsers])
-
-  const handlePageChange = useCallback((newPage: number) => {
-    if (newPage >= 0 && newPage < totalPages) {
-      setPage(newPage)
-    }
-  }, [totalPages])
-
-  const handleSizeChange = useCallback((newSize: number) => {
-    setSize(newSize)
-    setPage(0) // Reset về trang đầu khi thay đổi size
-  }, [])
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value)
-    // Page reset được xử lý trong debounce effect
-  }, [])
-
-  const handleSort = useCallback((column: string) => {
-    if (sortBy === column) {
-      // Nếu đang sắp xếp cột này, toggle hướng sắp xếp
-      setSortDir(sortDir === 'ASC' ? 'DESC' : 'ASC')
-    } else {
-      // Nếu chưa sắp xếp cột này, set cột mới và mặc định DESC
-      setSortBy(column)
-      setSortDir('DESC')
-    }
-    setPage(0) // Reset về trang đầu khi sắp xếp
-  }, [sortBy, sortDir])
-
-  const getSortIcon = useCallback((column: string) => {
-    if (sortBy !== column) {
-      return <ArrowUpDown className="w-4 h-4 text-gray-400" />
-    }
-    return sortDir === 'ASC' 
-      ? <ArrowUp className="w-4 h-4 text-primary-dark" />
-      : <ArrowDown className="w-4 h-4 text-primary-dark" />
-  }, [sortBy, sortDir])
-
-  // Generate page numbers with ellipsis - memoized
-  const pageNumbers = useMemo(() => {
-    const pages: (number | string)[] = []
-    const maxVisible = 5
-    
-    if (totalPages <= maxVisible) {
-      // Show all pages if total is small
-      for (let i = 0; i < totalPages; i++) {
-        pages.push(i)
-      }
-    } else {
-      // Always show first page
-      pages.push(0)
-      
-      if (page <= 2) {
-        // Near the start
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i)
-        }
-        pages.push('ellipsis')
-        pages.push(totalPages - 1)
-      } else if (page >= totalPages - 3) {
-        // Near the end
-        pages.push('ellipsis')
-        for (let i = totalPages - 4; i < totalPages; i++) {
-          pages.push(i)
-        }
-      } else {
-        // In the middle
-        pages.push('ellipsis')
-        for (let i = page - 1; i <= page + 1; i++) {
-          pages.push(i)
-        }
-        pages.push('ellipsis')
-        pages.push(totalPages - 1)
-      }
-    }
-    
-    return pages
-  }, [page, totalPages])
+  }, [refetch])
 
   if (loading) {
     return (
@@ -259,42 +144,34 @@ export default function UsersPage() {
             <table className="w-full bg-white shadow-lg" style={{ minWidth: '100%' }}>
             <thead className="bg-primary-dark text-white">
               <tr>
-                <th 
-                  className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-primary-dark/90 transition-colors"
-                  onClick={() => handleSort('userId')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>ID</span>
-                    {getSortIcon('userId')}
-                  </div>
-                </th>
-                <th 
-                  className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-primary-dark/90 transition-colors"
-                  onClick={() => handleSort('username')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Tên đăng nhập</span>
-                    {getSortIcon('username')}
-                  </div>
-                </th>
-                <th 
-                  className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-primary-dark/90 transition-colors"
-                  onClick={() => handleSort('fullname')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Họ và tên</span>
-                    {getSortIcon('fullname')}
-                  </div>
-                </th>
-                <th 
-                  className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-primary-dark/90 transition-colors"
-                  onClick={() => handleSort('email')}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span>Email</span>
-                    {getSortIcon('email')}
-                  </div>
-                </th>
+                <SortableTableHeader
+                  column="userId"
+                  label="ID"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortableTableHeader
+                  column="username"
+                  label="Tên đăng nhập"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortableTableHeader
+                  column="fullname"
+                  label="Họ và tên"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={handleSort}
+                />
+                <SortableTableHeader
+                  column="email"
+                  label="Email"
+                  currentSortBy={sortBy}
+                  currentSortDir={sortDir}
+                  onSort={handleSort}
+                />
                 <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Số điện thoại</th>
                 <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Thao tác</th>

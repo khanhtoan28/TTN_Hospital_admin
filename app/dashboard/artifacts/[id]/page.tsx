@@ -8,6 +8,7 @@ import { artifactsService } from '@/lib/api/services'
 import { ArtifactRequest } from '@/lib/api/types'
 import { Save, X, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import ImagePicker from '@/components/common/ImagePicker'
 
 export default function EditArtifactPage() {
   const { isAuthenticated } = useAuth()
@@ -22,6 +23,7 @@ export default function EditArtifactPage() {
     name: '',
     description: '',
     imageUrl: '',
+    imageId: undefined,
     period: '',
     type: '',
     space: '',
@@ -200,20 +202,18 @@ export default function EditArtifactPage() {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="imageUrl" className="label-field">
-            URL hình ảnh
-          </label>
-          <input
-            id="imageUrl"
-            type="url"
-            value={formData.imageUrl}
-            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-            className="input-field"
-            maxLength={500}
-            placeholder="https://example.com/image.jpg"
-          />
-        </div>
+        <ImagePicker
+          value={formData.imageId}
+          imageUrl={formData.imageUrl}
+          onSelect={(imageId, imageUrl) => {
+            setFormData({
+              ...formData,
+              imageId: imageId || undefined,
+              imageUrl: imageUrl || undefined,
+            })
+          }}
+          label="Hình ảnh"
+        />
 
         <div className="flex space-x-4">
           <button type="submit" disabled={saving} className="btn-primary flex items-center space-x-2">
