@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { imageService } from '@/lib/api/services'
 import { Image } from '@/lib/api/types'
 import { X, Search, Loader2, ImageIcon } from 'lucide-react'
@@ -31,6 +32,8 @@ export default function ImagePicker({
   const [selectedImage, setSelectedImage] = useState<Image | null>(null)
   const [manualUrl, setManualUrl] = useState('')
   const [useManualUrl, setUseManualUrl] = useState(false)
+  const { token } = useAuth()
+  const [previewSrc, setPreviewSrc] = useState<string>('')
 
   useEffect(() => {
     if (value && typeof value === 'number') {
@@ -40,6 +43,34 @@ export default function ImagePicker({
       setUseManualUrl(true)
     }
   }, [value, imageUrl])
+
+  useEffect(() => {
+    let mounted = true
+    const loadPreview = async () => {
+      try {
+        if (selectedImage) {
+          const { loadImageWithAuth } = await import('@/lib/utils/loadImageWithAuth')
+          const src = await loadImageWithAuth(`${API_CONFIG.BASE_URL}${selectedImage.url}`, token || undefined)
+          if (mounted) setPreviewSrc(src)
+          return
+        }
+
+        if (useManualUrl && manualUrl) {
+          const { loadImageWithAuth } = await import('@/lib/utils/loadImageWithAuth')
+          const src = await loadImageWithAuth(manualUrl, token || undefined)
+          if (mounted) setPreviewSrc(src)
+          return
+        }
+
+        if (mounted) setPreviewSrc('')
+      } catch (err) {
+        if (mounted) setPreviewSrc(selectedImage ? `${API_CONFIG.BASE_URL}${selectedImage.url}` : manualUrl || '')
+      }
+    }
+
+    loadPreview()
+    return () => { mounted = false }
+  }, [selectedImage, useManualUrl, manualUrl, token])
 
   const fetchSelectedImage = async (imageId: number) => {
     try {
@@ -112,7 +143,7 @@ export default function ImagePicker({
         {(selectedImage || (useManualUrl && manualUrl)) && (
           <div className="relative inline-block">
             <img
-              src={selectedImage ? getImageUrl(selectedImage) : manualUrl}
+              src={previewSrc || (selectedImage ? getImageUrl(selectedImage) : manualUrl)}
               alt="Preview"
               className="h-32 w-32 object-cover rounded-lg border border-gray-300"
             />

@@ -176,7 +176,38 @@ export const userService = {
 // Image Service
 export const imageService = {
   getAll: async (): Promise<BaseResponse<Image[]>> => {
-    return apiClient.get<Image[]>(API_ENDPOINTS.IMAGES.BASE, false);
+    // Normalize backend responses: backend may return either
+    // - BaseResponse<Image[]> (list)
+    // - BaseResponse<PageResponse<Image>> (paginated)
+    const res = await apiClient.get<any>(API_ENDPOINTS.IMAGES.BASE, false);
+
+    if (!res) {
+      return { success: false, error: 'No response from server' } as BaseResponse<Image[]>;
+    }
+
+    if (!res.success) {
+      // propagate error shape
+      return res as BaseResponse<Image[]>;
+    }
+
+    const data = res.data;
+
+    if (!data) {
+      return { success: true, data: [] };
+    }
+
+    // If paginated, extract content
+    if (data.content && Array.isArray(data.content)) {
+      return { success: true, data: data.content, message: res.message };
+    }
+
+    // If already an array
+    if (Array.isArray(data)) {
+      return { success: true, data, message: res.message };
+    }
+
+    // Unknown shape -> try to fallback
+    return { success: true, data: [], message: res.message };
   },
 
   getById: async (id: number): Promise<BaseResponse<Image>> => {

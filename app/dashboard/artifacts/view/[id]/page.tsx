@@ -10,7 +10,7 @@ import { ArrowLeft, Loader2, Edit } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ViewArtifactPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading, token } = useAuth()
   const router = useRouter()
   const params = useParams()
   const artifactId = params.id as string
@@ -18,6 +18,7 @@ export default function ViewArtifactPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [artifact, setArtifact] = useState<Artifact | null>(null)
+  const [imageSrc, setImageSrc] = useState<string>('')
 
   useEffect(() => {
     // Đợi auth context load xong
@@ -34,6 +35,28 @@ export default function ViewArtifactPage() {
       fetchArtifact()
     }
   }, [artifactId, isAuthenticated, authLoading, router])
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      if (artifact && artifact.imageUrl) {
+        try {
+          const { loadImageWithAuth } = await import('@/lib/utils/loadImageWithAuth')
+          const src = await loadImageWithAuth(artifact.imageUrl, token || undefined)
+          if (mounted) setImageSrc(src)
+        } catch (err) {
+          if (mounted) setImageSrc(artifact.imageUrl || '')
+        }
+      } else {
+        if (mounted) setImageSrc('')
+      }
+    }
+
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [artifact, token])
 
   const fetchArtifact = async () => {
     try {
@@ -118,10 +141,10 @@ export default function ViewArtifactPage() {
         )}
 
         <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
-          {artifact.imageUrl && (
+          {imageSrc && (
             <div className="flex justify-center">
               <img
-                src={artifact.imageUrl}
+                src={imageSrc}
                 alt={artifact.artifactName}
                 className="max-w-full h-auto rounded-lg shadow-md"
                 onError={(e) => {

@@ -10,7 +10,7 @@ import { ArrowLeft, Loader2, Edit } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ViewHistoryPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading, token } = useAuth()
   const router = useRouter()
   const params = useParams()
   const historyId = params.id as string
@@ -18,6 +18,7 @@ export default function ViewHistoryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [history, setHistory] = useState<History | null>(null)
+  const [imageSrc, setImageSrc] = useState<string>('')
 
   useEffect(() => {
     // Đợi auth context load xong
@@ -34,6 +35,28 @@ export default function ViewHistoryPage() {
       fetchHistory()
     }
   }, [historyId, isAuthenticated, authLoading, router])
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      if (history && history.image) {
+        try {
+          const { loadImageWithAuth } = await import('@/lib/utils/loadImageWithAuth')
+          const src = await loadImageWithAuth(history.image, token || undefined)
+          if (mounted) setImageSrc(src)
+        } catch (err) {
+          if (mounted) setImageSrc(history.image || '')
+        }
+      } else {
+        if (mounted) setImageSrc('')
+      }
+    }
+
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [history, token])
 
   const fetchHistory = async () => {
     try {
@@ -118,10 +141,10 @@ export default function ViewHistoryPage() {
         )}
 
         <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
-          {history.image && (
+          {imageSrc && (
             <div className="flex justify-center">
               <img
-                src={history.image}
+                src={imageSrc}
                 alt={history.title}
                 className="max-w-full h-auto rounded-lg shadow-md"
                 onError={(e) => {

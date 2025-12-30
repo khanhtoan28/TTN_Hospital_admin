@@ -10,7 +10,7 @@ import { ArrowLeft, Loader2, Edit } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ViewGoldenBookPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading, token } = useAuth()
   const router = useRouter()
   const params = useParams()
   const bookId = params.id as string
@@ -18,6 +18,7 @@ export default function ViewGoldenBookPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [book, setBook] = useState<GoldenBook | null>(null)
+  const [imageSrc, setImageSrc] = useState<string>('')
 
   useEffect(() => {
     // Đợi auth context load xong
@@ -34,6 +35,28 @@ export default function ViewGoldenBookPage() {
       fetchBook()
     }
   }, [bookId, isAuthenticated, authLoading, router])
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      if (book && book.image) {
+        try {
+          const { loadImageWithAuth } = await import('@/lib/utils/loadImageWithAuth')
+          const src = await loadImageWithAuth(book.image, token || undefined)
+          if (mounted) setImageSrc(src)
+        } catch (err) {
+          if (mounted) setImageSrc(book.image || '')
+        }
+      } else {
+        if (mounted) setImageSrc('')
+      }
+    }
+
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [book, token])
 
   const fetchBook = async () => {
     try {
@@ -118,10 +141,10 @@ export default function ViewGoldenBookPage() {
         )}
 
         <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
-          {book.image && (
+          {imageSrc && (
             <div className="flex justify-center">
               <img
-                src={book.image}
+                src={imageSrc}
                 alt={book.goldenBookName}
                 className="max-w-full h-auto rounded-lg shadow-md"
                 onError={(e) => {
