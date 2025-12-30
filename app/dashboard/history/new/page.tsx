@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
 import AdminLayout from '@/components/AdminLayout'
 import { historyService } from '@/lib/api/services'
 import { HistoryRequest } from '@/lib/api/types'
@@ -11,7 +10,6 @@ import Link from 'next/link'
 import ImagePicker from '@/components/common/ImagePicker'
 
 export default function NewHistoryPage() {
-  const { isAuthenticated } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
